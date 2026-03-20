@@ -5,29 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>My Song List</title>
   <style>
-    body {
-  /* ...既存の設定はそのままでOK... */
-  
-  /* ↓ここから追加 */
-  background-image: url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 60%; /* アイコンの大きさ（お好みで調整） */
-  background-attachment: fixed;
-  /* ↑ここまで追加 */
-}
-
-/* 背景を「うっすら」させるために、上に半透明の黒を重ねる設定 */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(18, 18, 18, 0.85); /* 0.85を大きくするともっと暗く（うっすら）なります */
-  z-index: -1;
-}
     :root { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --accent: #bb86fc; --primary: #03dac6; --error: #cf6679; --success: #28a745; --border: #333; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+    
+    /* bodyの設定：ここに背景設定を集約しました */
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background-color: var(--bg); 
+      color: var(--text); 
+      margin: 0; padding: 0; 
+      display: flex; flex-direction: column; 
+      height: 100vh; box-sizing: border-box; 
+      overflow: hidden; 
+      
+      /* 背景アイコンの設定 */
+      background-image: url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 60%; 
+      background-attachment: fixed;
+    }
+
+    /* 背景をうっすらさせるオーバーレイ（曲リストの下に敷く） */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(18, 18, 18, 0.85); 
+      z-index: -1;
+      pointer-events: none;
+    }
+
     .header-fixed { background: #1a1a1a; padding: 10px 15px; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100; }
     .header-row { display: flex; justify-content: space-between; align-items: center; height: 44px; }
     #timerDisplay { font-size: 30px; font-weight: bold; font-family: monospace; color: var(--primary); display: none; }
@@ -46,7 +54,7 @@ body::before {
     .artist-tab.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
     #searchBox { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: white; font-size: 16px; margin: 10px 0; outline: none; box-sizing: border-box; flex-shrink: 0; }
     #songList { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
-    .songBtn { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; }
+    .songBtn { background: rgba(30, 30, 30, 0.7); color: var(--text); border: 1px solid var(--border); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; backdrop-filter: blur(5px); }
     .btn-main { display: flex; flex-direction: column; flex: 1; text-align: left; overflow: hidden; }
     .btn-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .btn-artist { font-size: 11px; color: #888; }
@@ -64,7 +72,6 @@ body::before {
     .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 4000; }
     .confirm-card { background: var(--card); padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid var(--accent); }
     #resultArea { width: 100%; flex-grow: 1; background: #000; color: #0f0; border: none; padding: 15px; font-family: monospace; border-radius: 10px; margin: 10px 0; resize: none; }
-    /* ローディング（通信中）のスタイル */
     #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999; color:white; font-weight:bold; }
   </style>
 </head>
@@ -137,7 +144,6 @@ body::before {
   </div>
 
   <script>
-    // 【重要】ここにあなたのGASウェブアプリURLを貼り付けてください
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzSV8jokY9LLVLn3ylFoHOHbE7qOZ-zgie0f9S-fTczyd_LQKBLs68FlA8DFLf3gai-rQ/exec";
 
     let IS_ADMIN = false;
@@ -145,10 +151,8 @@ body::before {
     let startTime = null, isRunning = false, allSongs = [], currentRequests = [], currentTab = "すべて";
     const OHMORI_GROUP = ["Mrs. GREEN APPLE", "Siip", "大森元貴"];
 
-    // 通信関数：強制的に「通信中」を出さない設定を追加
     async function callGAS(params, showLoading = false) {
       if (showLoading) document.getElementById('loadingOverlay').style.display = 'flex';
-      
       const queryString = new URLSearchParams(params).toString();
       try {
         const response = await fetch(`${GAS_URL}?${queryString}`);
@@ -156,7 +160,6 @@ body::before {
         return data;
       } catch (e) {
         console.error("GAS通信エラー:", e);
-        // 自動更新（showLoading=false）の時はエラーを出さない
         if (showLoading) alert("通信に失敗しました。電波状況を確認してください。");
       } finally {
         if (showLoading) document.getElementById('loadingOverlay').style.display = 'none';
@@ -166,14 +169,13 @@ body::before {
     window.onload = () => {
       const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
       applyAdminMode(loggedIn);
-      
       const cached = localStorage.getItem('songCache');
       if (cached) { 
         allSongs = JSON.parse(cached); 
         renderAll(); 
-        fetchData(false); // キャッシュがあれば裏で更新
+        fetchData(false);
       } else {
-        fetchData(true);  // 初回のみ「通信中」を出す
+        fetchData(true); 
       }
     };
 
@@ -194,11 +196,9 @@ body::before {
         else counts[s.artist] = (counts[s.artist] || 0) + 1;
       });
       const majorArtists = Object.keys(counts).filter(a => counts[a] >= 10).sort();
-      
       const tabs = [{ id: "すべて", label: `すべて (${allSongs.length})` }, { id: "最近歌った順", label: "最近歌った順" }];
       if (ohmoriTotal > 0) tabs.push({ id: "大森元貴曲", label: `大森元貴曲 (${ohmoriTotal})` });
       majorArtists.forEach(name => tabs.push({ id: name, label: `${name} (${counts[name]})` }));
-      
       const container = document.getElementById('tabContainer');
       container.innerHTML = '';
       tabs.forEach(tab => {
@@ -219,9 +219,7 @@ body::before {
       if (currentTab === "大森元貴曲") f = f.filter(s => OHMORI_GROUP.includes(s.artist));
       else if (currentTab === "最近歌った順") f.sort((a,b) => new Date(b.lastSung) - new Date(a.lastSung));
       else if (currentTab !== "すべて") f = f.filter(s => s.artist === currentTab);
-      
       if (query) f = f.filter(s => s.name.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query));
-      
       f.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'songBtn';
@@ -252,7 +250,6 @@ body::before {
 
     async function checkRequests() {
       if (!IS_ADMIN) return;
-      // 自動チェックは絶対に裏（false）でやる
       const reqs = await callGAS({ action: "getRequests" }, false);
       if (reqs) {
         currentRequests = reqs;
@@ -289,7 +286,6 @@ body::before {
     function executeSing(song) {
       const timeStr = document.getElementById('timerDisplay').innerText;
       document.getElementById('resultArea').value += `${timeStr} ${song.name}\n`;
-      // 更新は裏（false）でやる
       if (song.id) callGAS({ action: "updateDate", id: song.id }, false);
     }
 
@@ -328,7 +324,7 @@ body::before {
         startTime = Date.now(); isRunning = true;
         updateButtonUI(true);
       } else {
-        if (confirm("終了しますか？")) isRunning = false; updateButtonUI(false);
+        if (confirm("終了しますか？")) { isRunning = false; updateButtonUI(false); }
       }
     }
 
