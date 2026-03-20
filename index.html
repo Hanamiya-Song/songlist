@@ -116,25 +116,27 @@
   </div>
 
   <script>
-    // 【重要】ここにコピーしたGASのウェブアプリURLを貼り付けてください
-    const GAS_URL = "ここにメモしたURLを貼る";
+    // 【重要】ここにあなたのGASウェブアプリURLを貼り付けてください
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzSV8jokY9LLVLn3ylFoHOHbE7qOZ-zgie0f9S-fTczyd_LQKBLs68FlA8DFLf3gai-rQ/exec";
 
     let IS_ADMIN = false;
     const ADMIN_PASS = "0000"; 
     let startTime = null, isRunning = false, allSongs = [], currentRequests = [], currentTab = "すべて";
     const OHMORI_GROUP = ["Mrs. GREEN APPLE", "Siip", "大森元貴"];
 
-    // 改良版通信関数：showLoadingがtrueの時だけ画面をロックする
+    // 通信関数：強制的に「通信中」を出さない設定を追加
     async function callGAS(params, showLoading = false) {
       if (showLoading) document.getElementById('loadingOverlay').style.display = 'flex';
+      
       const queryString = new URLSearchParams(params).toString();
       try {
         const response = await fetch(`${GAS_URL}?${queryString}`);
         const data = await response.json();
         return data;
       } catch (e) {
-        console.error(e);
-        if (showLoading) alert("通信エラーが発生しました");
+        console.error("GAS通信エラー:", e);
+        // 自動更新（showLoading=false）の時はエラーを出さない
+        if (showLoading) alert("通信に失敗しました。電波状況を確認してください。");
       } finally {
         if (showLoading) document.getElementById('loadingOverlay').style.display = 'none';
       }
@@ -143,9 +145,15 @@
     window.onload = () => {
       const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
       applyAdminMode(loggedIn);
+      
       const cached = localStorage.getItem('songCache');
-      if (cached) { allSongs = JSON.parse(cached); renderAll(); }
-      fetchData(true); // 初回は表示する
+      if (cached) { 
+        allSongs = JSON.parse(cached); 
+        renderAll(); 
+        fetchData(false); // キャッシュがあれば裏で更新
+      } else {
+        fetchData(true);  // 初回のみ「通信中」を出す
+      }
     };
 
     async function fetchData(showUI = false) {
@@ -159,17 +167,17 @@
 
     function renderAll() {
       const counts = {};
-      let ohmoriTotal = 0, otherTotal = 0;
+      let ohmoriTotal = 0;
       allSongs.forEach(s => {
         if (OHMORI_GROUP.includes(s.artist)) ohmoriTotal++;
         else counts[s.artist] = (counts[s.artist] || 0) + 1;
       });
       const majorArtists = Object.keys(counts).filter(a => counts[a] >= 10).sort();
-      Object.keys(counts).forEach(a => { if (counts[a] < 10) otherTotal += counts[a]; });
+      
       const tabs = [{ id: "すべて", label: `すべて (${allSongs.length})` }, { id: "最近歌った順", label: "最近歌った順" }];
       if (ohmoriTotal > 0) tabs.push({ id: "大森元貴曲", label: `大森元貴曲 (${ohmoriTotal})` });
       majorArtists.forEach(name => tabs.push({ id: name, label: `${name} (${counts[name]})` }));
-      if (otherTotal > 0) tabs.push({ id: "その他", label: `その他 (${otherTotal})` });
+      
       const container = document.getElementById('tabContainer');
       container.innerHTML = '';
       tabs.forEach(tab => {
@@ -189,12 +197,10 @@
       let f = [...allSongs];
       if (currentTab === "大森元貴曲") f = f.filter(s => OHMORI_GROUP.includes(s.artist));
       else if (currentTab === "最近歌った順") f.sort((a,b) => new Date(b.lastSung) - new Date(a.lastSung));
-      else if (currentTab === "その他") {
-        const counts = {}; allSongs.forEach(s => counts[s.artist] = (counts[s.artist] || 0) + 1);
-        f = f.filter(s => counts[s.artist] < 10 && !OHMORI_GROUP.includes(s.artist));
-      }
       else if (currentTab !== "すべて") f = f.filter(s => s.artist === currentTab);
+      
       if (query) f = f.filter(s => s.name.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query));
+      
       f.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'songBtn';
@@ -218,20 +224,22 @@
         };
       } else {
         if (confirm(`「${song.name}」をリクエストしますか？`)) {
-          callGAS({ action: "sendRequest", name: song.name, artist: song.artist }, true).then(() => alert("リクエストを送信しました！"));
+          callGAS({ action: "sendRequest", name: song.name, artist: song.artist }, true).then(() => alert("送信しました！"));
         }
       }
     }
 
     async function checkRequests() {
       if (!IS_ADMIN) return;
-      // 裏でこっそり確認（false）
+      // 自動チェックは絶対に裏（false）でやる
       const reqs = await callGAS({ action: "getRequests" }, false);
       if (reqs) {
         currentRequests = reqs;
         const badge = document.getElementById('requestBadge');
-        badge.innerText = reqs.length;
-        badge.style.display = reqs.length > 0 ? 'block' : 'none';
+        if (badge) {
+          badge.innerText = reqs.length;
+          badge.style.display = reqs.length > 0 ? 'block' : 'none';
+        }
       }
     }
 
@@ -239,7 +247,7 @@
       const modal = document.getElementById('requestModal');
       const list = document.getElementById('requestList');
       modal.style.display = 'flex';
-      list.innerHTML = currentRequests.length === 0 ? '<div style="text-align:center; padding:20px; color:#666;">リクエストはありません</div>' : '';
+      list.innerHTML = currentRequests.length === 0 ? '<div style="text-align:center; padding:20px; color:#666;">なし</div>' : '';
       currentRequests.forEach(req => {
         const div = document.createElement('div');
         div.className = 'request-item';
@@ -250,17 +258,17 @@
     }
 
     async function deleteReq(id) {
-      if (confirm("このリクエストを削除しますか？")) {
+      if (confirm("削除しますか？")) {
         await callGAS({ action: "deleteRequest", id: id }, true);
         checkRequests();
         openRequestModal();
       }
     }
 
-    async function executeSing(song) {
+    function executeSing(song) {
       const timeStr = document.getElementById('timerDisplay').innerText;
       document.getElementById('resultArea').value += `${timeStr} ${song.name}\n`;
-      // 日付更新は裏で実行（false）
+      // 更新は裏（false）でやる
       if (song.id) callGAS({ action: "updateDate", id: song.id }, false);
     }
 
@@ -268,12 +276,10 @@
       const name = document.getElementById('newSong').value;
       const artist = document.getElementById('newArtist').value;
       const status = document.getElementById('newStatus').value;
-      if (!name || !artist) return alert("曲名とアーティストを入力してください");
+      if (!name || !artist) return alert("入力してください");
       await callGAS({ action: "addSong", name, artist, status }, true);
       alert("Notionに追加しました");
-      document.getElementById('newSong').value = '';
-      document.getElementById('newArtist').value = '';
-      fetchData(true);
+      fetchData(false);
     }
 
     function applyAdminMode(isAdmin) {
@@ -283,7 +289,10 @@
       document.getElementById('guestTitle').style.display = isAdmin ? 'none' : 'block';
       document.getElementById('loginBtn').style.display = isAdmin ? 'none' : 'block';
       document.getElementById('timerDisplay').style.display = isAdmin ? 'block' : 'none';
-      if (isAdmin) setInterval(checkRequests, 10000);
+      if (isAdmin) {
+        clearInterval(window.reqInterval);
+        window.reqInterval = setInterval(checkRequests, 10000);
+      }
     }
 
     function switchView(view) {
@@ -298,7 +307,7 @@
         startTime = Date.now(); isRunning = true;
         updateButtonUI(true);
       } else {
-        if (confirm("タイマーを終了しますか？")) isRunning = false; updateButtonUI(false);
+        if (confirm("終了しますか？")) isRunning = false; updateButtonUI(false);
       }
     }
 
@@ -317,7 +326,7 @@
       }
     }, 1000);
 
-    function tryLogin() { const p = prompt("管理者パスワード?"); if (p === ADMIN_PASS) applyAdminMode(true); }
+    function tryLogin() { const p = prompt("PASS?"); if (p === ADMIN_PASS) applyAdminMode(true); }
     function logout() { localStorage.setItem('isAdminLoggedIn', 'false'); location.reload(); }
     function closeConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; }
     function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
