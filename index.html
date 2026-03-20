@@ -178,18 +178,23 @@
       }
     }
 
-    window.onload = () => {
-      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-      applyAdminMode(loggedIn);
-      const cached = localStorage.getItem('songCache');
-      if (cached) { 
-        allSongs = JSON.parse(cached); 
-        renderAll(); 
-        fetchData(false);
-      } else {
-        fetchData(true); 
-      }
-    };
+   window.onload = async () => {
+  const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+  applyAdminMode(loggedIn);
+
+  // 【重要】管理者なら、ページを開いた瞬間にサーバーの開始時間をチェック
+  if (IS_ADMIN) {
+    const res = await callGAS({ action: 'checkExternalStart' });
+    if (res && res.startTime) {
+      startTime = parseInt(res.startTime);
+      isRunning = true;
+      updateButtonUI(true);
+    }
+  }
+
+  // 既存のデータ読み込み
+  fetchData(true);
+};
 
     async function fetchData(showUI = false) {
       const songs = await callGAS({ action: "getSongs" }, showUI);
@@ -331,14 +336,22 @@
       document.getElementById('nav-' + view).classList.add('active');
     }
 
-    function handleAction() {
-      if (!isRunning) {
-        startTime = Date.now(); isRunning = true;
-        updateButtonUI(true);
-      } else {
-        if (confirm("終了しますか？")) { isRunning = false; updateButtonUI(false); }
-      }
+    async function handleAction() {
+  if (!isRunning) {
+    // 開始：自分の画面で開始しつつ、サーバーにも保存
+    startTime = Date.now();
+    isRunning = true;
+    updateButtonUI(true);
+    await callGAS({ action: 'startFromExternal' }); // サーバーに保存
+  } else {
+    if (confirm("配信を終了しますか？（タイマーがリセットされます）")) {
+      isRunning = false;
+      updateButtonUI(false);
+      // 終了：サーバーの記録も消す
+      await callGAS({ action: 'clearExternalStart' });
     }
+  }
+}
 
     function updateButtonUI(active) {
       const btn = document.getElementById('actionBtn');
