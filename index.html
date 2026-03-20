@@ -32,7 +32,6 @@
       pointer-events: none;
     }
 
-    /* 上部隠れ対策：iPhoneのノッチを考慮 */
     .header-fixed { 
       background: #1a1a1a; 
       padding: 10px 15px; 
@@ -65,17 +64,14 @@
     .btn-artist { font-size: 11px; color: #888; }
     .btn-date { font-size: 12px; color: var(--accent); font-family: monospace; margin-left: 10px; white-space: nowrap; }
     
-    /* Notion追加欄 */
-    .add-section { background: #252525; padding: 15px; border-radius: 10px; margin: 10px 0; border: 1px solid #444; flex-shrink: 0; }
-    .add-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; box-sizing: border-box; }
-    .add-row input { flex: 1; min-width: 0; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 13px; box-sizing: border-box; }
-    .add-row select { padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 13px; width: 100px; box-sizing: border-box; }
-    .add-btn { width: 100%; padding: 12px; border-radius: 5px; background: var(--primary); color: black; font-weight: bold; border: none; cursor: pointer; box-sizing: border-box; }
-    
-    /* コード選択用スタイル */
-    .chord-provider-list { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; }
-    .chord-btn { background: #333; color: #fff; border: 1px solid #555; padding: 12px; border-radius: 8px; text-align: left; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .chord-btn:active { background: #444; transform: scale(0.98); }
+    /* 追加：コードURL選択エリア */
+    .chord-selector { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; }
+    .chord-link-btn { 
+      background: #333; color: #fff; border: 1px solid #555; padding: 12px; border-radius: 10px; 
+      text-align: left; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+      text-decoration: none;
+    }
+    .chord-link-btn:active { background: #444; }
 
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: var(--accent); }
@@ -83,9 +79,16 @@
     .request-item { display: flex; align-items: center; background: #252525; padding: 12px; border-radius: 10px; border: 1px solid #333; gap: 10px; }
     .del-btn { background: var(--error); color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 12px; cursor: pointer; }
     .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 4000; }
-    .confirm-card { background: var(--card); padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid var(--accent); }
+    .confirm-card { background: var(--card); padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid var(--accent); max-width: 400px; }
     #resultArea { width: 100%; height: 130px; background: #000; color: #0f0; border: 1px solid #333; padding: 15px; font-family: monospace; border-radius: 10px; margin: 10px 0; resize: none; box-sizing: border-box; }
     #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999; color:white; font-weight:bold; }
+    
+    /* Notion追加欄 */
+    .add-section { background: #252525; padding: 15px; border-radius: 10px; margin: 10px 0; border: 1px solid #444; flex-shrink: 0; }
+    .add-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; box-sizing: border-box; }
+    .add-row input { flex: 1; min-width: 0; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 13px; box-sizing: border-box; }
+    .add-row select { padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 13px; width: 100px; box-sizing: border-box; }
+    .add-btn { width: 100%; padding: 12px; border-radius: 5px; background: var(--primary); color: black; font-weight: bold; border: none; cursor: pointer; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -150,9 +153,9 @@
   <div id="confirmOverlay" class="confirm-overlay">
     <div class="confirm-card">
       <h3 id="confirmTitle" style="color:var(--accent); margin-bottom:5px;"></h3>
-      <div id="chordSelectionArea" class="chord-provider-list"></div>
-      <p>この曲を歌いますか？</p>
-      <div style="display:flex; gap:12px; margin-top:25px;">
+      <div id="chordSelectionArea" class="chord-selector"></div>
+      <p style="font-size: 14px; margin-bottom: 20px;">この曲を歌いますか？</p>
+      <div style="display:flex; gap:12px;">
         <button onclick="closeConfirm()" style="flex:1; padding:15px; background:#444; color:white; border-radius:10px; border:none;">やめる</button>
         <button id="execSingBtn" style="flex:1; padding:15px; background:var(--primary); color:black; font-weight:bold; border-radius:10px; border:none;">歌う！</button>
       </div>
@@ -244,23 +247,26 @@
       });
     }
 
+    // ★URL選択機能：Notionのプロパティ名に合わせた修正
     function onSongTap(song, isFromRequest = false, requestId = null) {
       if (IS_ADMIN) {
         document.getElementById('confirmTitle').innerText = song.name;
+        
         const area = document.getElementById('chordSelectionArea');
         area.innerHTML = '';
         
+        // Notionの実際の列名に合わせたマッピング
         const providers = [
-          { name: "U-FRET", url: song.ufret },
-          { name: "Chordwiki", url: song.chordwiki },
-          { name: "リンネのコードブック", url: song.linne }
+          { name: "U-FRET", url: song["U-FRET"] },
+          { name: "Chordwiki", url: song["Chordwiki"] },
+          { name: "リンネのコードブック", url: song["リンネのコードブック"] }
         ];
 
         let hasUrl = false;
         providers.forEach(p => {
           if (p.url && p.url.trim() !== "" && p.url.startsWith('http')) {
             const btn = document.createElement('div');
-            btn.className = 'chord-btn';
+            btn.className = 'chord-link-btn';
             btn.innerHTML = `<span>${p.name}</span><span>🔗</span>`;
             btn.onclick = () => window.open(p.url, '_blank');
             area.appendChild(btn);
