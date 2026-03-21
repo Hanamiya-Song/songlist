@@ -620,7 +620,7 @@ function closeMsgModal() { document.getElementById('msgModal').style.display = '
     setInterval(() => { if (IS_ADMIN) syncWithServer(); }, 3000);
     setInterval(() => {
       if (isRunning && startTime) {
-        const diff = Date.now() - startTime;
+        const diff = Math.max(0, Date.now() - startTime);
         const min = Math.floor(diff / 60000);
         const sec = Math.floor((diff % 60000) / 1000);
         const display = document.getElementById('timerDisplay');
