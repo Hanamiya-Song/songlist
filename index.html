@@ -435,7 +435,7 @@
       document.getElementById('titleContainer').style.display = isAdmin ? 'none' : 'flex';
       document.getElementById('loginBtn').style.display = isAdmin ? 'none' : 'block';
       document.getElementById('timerDisplay').style.display = isAdmin ? 'block' : 'none';
-      if (isAdmin) setInterval(checkRequests, 10000);
+      if (isAdmin) setInterval(checkRequests, 3000);
     }
 
     async function checkRequests() {
