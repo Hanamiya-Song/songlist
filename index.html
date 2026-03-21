@@ -171,6 +171,20 @@
     .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 4000; }
     .confirm-card { background: var(--card); padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid var(--accent); }
     #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999; color:white; font-weight:bold; }
+    #songList, #messageList {
+  max-height: 200px; /* 好きな高さに調整してください */
+  overflow-y: auto;  /* 中身が増えたらスクロールさせる */
+  padding-right: 5px;
+}
+
+/* スクロールバーを細くしてデザインを崩さない */
+#songList::-webkit-scrollbar, #messageList::-webkit-scrollbar {
+  width: 4px;
+}
+#songList::-webkit-scrollbar-thumb, #messageList::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
   </style>
 </head>
 <body>
@@ -256,10 +270,22 @@
   </div>
 
   <div id="requestModal" class="modal">
-    <div class="modal-header"><h3>📩 リクエスト</h3><button onclick="closeRequestModal()" style="background:none; border:none; color:#888; font-size:28px;">×</button></div>
-    <div id="requestList" class="modal-content"></div>
-    <button onclick="closeRequestModal()" style="margin-top:15px; padding:15px; background:#444; color:white; border-radius:10px; border:none;">閉じる</button>
+  <div class="modal-header">
+    <h3>📥 REQUESTS & MESSAGES</h3>
+    <button onclick="closeRequestModal()" style="background:none; border:none; color:#888; font-size:28px;">×</button>
   </div>
+  <div class="modal-content" style="display: flex; flex-direction: column; gap: 20px;">
+    
+    <div>
+      <h4 style="color: var(--accent); font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #333;">🎵 SONG REQUESTS</h4>
+      <div id="songList"></div> </div>
+
+    <div>
+      <h4 style="color: var(--primary); font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #333;">✉️ MESSAGES</h4>
+      <div id="messageList"></div> </div>
+
+  </div>
+</div>
 
   <div id="confirmOverlay" class="confirm-overlay">
     <div class="confirm-card">
@@ -504,35 +530,58 @@ function closeMsgModal() { document.getElementById('msgModal').style.display = '
     }
 
     function openRequestModal() {
-  const list = document.getElementById('requestList');
-  list.innerHTML = currentRequests.length === 0 ? '<div style="text-align:center; padding:20px; color:#666;">なし</div>' : '';
+  const modal = document.getElementById('requestModal');
+  const songList = document.getElementById('songList');
+  const messageList = document.getElementById('messageList');
   
+  modal.style.display = 'flex';
+  
+  // 中身を一旦リセット
+  songList.innerHTML = '';
+  messageList.innerHTML = '';
+
+  // 1つもリクエストがない場合
+  if (currentRequests.length === 0) {
+    songList.innerHTML = '<div style="text-align:center; padding:10px; color:#666; font-size:12px;">なし</div>';
+    messageList.innerHTML = '<div style="text-align:center; padding:10px; color:#666; font-size:12px;">なし</div>';
+    return;
+  }
+
   currentRequests.forEach(req => {
+    const isChat = req.artist === "💬 MESSAGE";
     const div = document.createElement('div');
     div.className = 'request-item';
-    
-    // メッセージかどうかを判定
-    const isChat = req.artist === "💬 MESSAGE";
-    
+    div.style.marginBottom = '8px';
+
+    // HTMLの組み立て
     div.innerHTML = `
-      <div style="flex:1;">
-        <b style="color:${isChat ? 'var(--primary)' : 'var(--accent)'};">${isChat ? '✉️ ' : ''}${req.name}</b><br>
-        <small style="color:#888;">${req.artist}</small>
+      <div style="flex:1">
+        <b style="color:${isChat ? 'var(--primary)' : 'var(--accent)'};">
+          ${isChat ? '' : '♪ '}${req.name}
+        </b><br>
+        <small style="color:#888;">${isChat ? 'Message' : req.artist}</small>
       </div>
       <button class="del-btn" onclick="event.stopPropagation(); deleteReq('${req.id}')">削除</button>
     `;
 
-    // メッセージ以外（曲）の時だけ、タップで管理メニュー（リンク集）を開く
-    if (!isChat) {
-      const fullData = allSongs.find(s => s.name.trim() === req.name.trim());
-      div.onclick = () => showAdminMenu(fullData || { name: req.name, artist: req.artist }, true, req.id);
+    if (isChat) {
+      // メッセージなら下半分へ
+      messageList.appendChild(div);
+    } else {
+      // 曲なら上半分へ
+      div.style.cursor = 'pointer';
+      div.onclick = () => {
+        const fullSongData = allSongs.find(s => s.name.trim() === req.name.trim());
+        showAdminMenu(fullSongData || { name: req.name, artist: req.artist }, true, req.id);
+      };
+      songList.appendChild(div);
     }
-    
-    list.appendChild(div);
   });
-  document.getElementById('requestModal').style.display = 'flex';
-}
 
+  // どちらかが空の場合の「なし」表示
+  if (songList.innerHTML === '') songList.innerHTML = '<div style="color:#666; font-size:12px; padding:5px;">曲のリクエストはありません</div>';
+  if (messageList.innerHTML === '') messageList.innerHTML = '<div style="color:#666; font-size:12px; padding:5px;">メッセージはありません</div>';
+}
     async function deleteReq(id) {
       if (confirm("削除しますか？")) {
         await callGAS({ action: "deleteRequest", id: id }, true);
