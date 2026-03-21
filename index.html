@@ -451,18 +451,35 @@
     }
 
     function openRequestModal() {
-      const modal = document.getElementById('requestModal');
-      const list = document.getElementById('requestList');
-      modal.style.display = 'flex';
-      list.innerHTML = currentRequests.length === 0 ? '<div style="text-align:center; padding:20px; color:#666;">なし</div>' : '';
-      currentRequests.forEach(req => {
-        const div = document.createElement('div');
-        div.className = 'request-item';
-        div.innerHTML = `<div style="flex:1" onclick='onSongTap({name:"${req.name}", artist:"${req.artist}"}, true, "${req.id}")'><b>${req.name}</b><br><small>${req.artist}</small></div>
-        <button class="del-btn" onclick="deleteReq('${req.id}')">削除</button>`;
-        list.appendChild(div);
-      });
-    }
+  const modal = document.getElementById('requestModal');
+  const list = document.getElementById('requestList');
+  modal.style.display = 'flex';
+  list.innerHTML = currentRequests.length === 0 ? '<div style="text-align:center; padding:20px; color:#666;">なし</div>' : '';
+
+  currentRequests.forEach(req => {
+    const div = document.createElement('div');
+    div.className = 'request-item';
+
+    // 重要：allSongsの中から、リクエストされた曲名とアーティストが一致する「完全なデータ」を探す
+    const fullSongData = allSongs.find(s => s.name === req.name && s.artist === req.artist);
+
+    // クリック時の挙動：
+    // フルデータがあればそれを使う。なければリクエスト情報だけでメニューを開く。
+    div.onclick = () => {
+      const targetData = fullSongData || { name: req.name, artist: req.artist };
+      showAdminMenu(targetData, true, req.id);
+    };
+
+    div.innerHTML = `
+      <div style="flex:1">
+        <b>${req.name}</b><br>
+        <small>${req.artist}</small>
+      </div>
+      <button class="del-btn" onclick="event.stopPropagation(); deleteReq('${req.id}')">削除</button>
+    `;
+    list.appendChild(div);
+  });
+}
 
     async function deleteReq(id) {
       if (confirm("削除しますか？")) {
