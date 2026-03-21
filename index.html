@@ -134,10 +134,10 @@
       <div style="display: flex; gap: 8px; margin: 10px 0; flex-shrink: 0; height: 46px;">
   
   <input type="text" id="searchBox" placeholder="🔍 曲名・アーティストで検索..." oninput="filterSongs()" 
-         style="flex: 1; height: 100%; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: white; font-size: 16px; outline: none; box-sizing: border-box;">
-  
-  <select id="sortSelect" onchange="filterSongs()" 
-          style="width: 105px; height: 100%; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--accent); font-size: 11px; outline: none; cursor: pointer; padding: 0 5px; box-sizing: border-box; -webkit-appearance: none; appearance: none; text-align: center;">
+       style="flex: 1; height: 46px !important; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: white; font-size: 16px; outline: none; box-sizing: border-box; margin: 0; line-height: 46px;">
+
+<select id="sortSelect" onchange="filterSongs()" 
+        style="width: 105px; height: 46px !important; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--accent); font-size: 11px; outline: none; cursor: pointer; padding: 0 5px; box-sizing: border-box; -webkit-appearance: none; appearance: none; text-align: center; margin: 0;">
     <option value="artist">アーティスト順</option>
     <option value="name">曲名順</option>
     <option value="date">直近歌った順</option>
