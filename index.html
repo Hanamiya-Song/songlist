@@ -148,14 +148,15 @@
       <div id="songList"></div>
     </div>
     <div id="page-log" class="page">
-      <div id="randomSelectionArea" style="display:none; background: rgba(98, 0, 238, 0.1); padding: 15px; border-radius: 15px; border: 1px dashed #6200ee; margin-bottom: 20px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-    <strong style="color:#bb86fc;">🎲 本日の20選（タップで歌唱）</strong>
-    <button onclick="document.getElementById('randomSelectionArea').style.display='none'" style="background:none; border:none; color:#888;">× 閉じる</button>
-  </div>
-  <div id="randomList" style="display: flex; flex-direction: column; gap: 8px;">
-    </div>
-</div>
+      <div id="randomSelectionArea" style="display:none; background: rgba(98, 0, 238, 0.15); padding: 15px; border-radius: 15px; border: 2px dashed #6200ee; margin-top: 10px; margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong style="color:#bb86fc; font-size:14px;">🎲 本日の20選（タップで歌唱）</strong>
+          <button onclick="document.getElementById('randomSelectionArea').style.display='none'" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">×</button>
+        </div>
+        <div id="randomList" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+          </div>
+      </div>
+
       <div class="add-section">
         <div style="font-size:11px; color:var(--primary); margin-bottom:6px; font-weight:bold;">▼ 新曲をNotionへ追加</div>
         <div class="add-row">
@@ -171,10 +172,13 @@
           <button class="add-btn" onclick="addNewSong()">Notionに追加</button>
         </div>
       </div>
+
       <textarea id="resultArea" readonly placeholder="ここにログが溜まります"></textarea>
+
       <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <button onclick="copyLog()" style="flex:1; padding:12px; border-radius:10px; background:var(--accent); border:none; font-weight:bold;">📋 ログをコピー</button>
-        <button onclick="fetchData(true)" style="flex:1; padding:12px; border-radius:10px; background:#444; border:none; color:white;">🔄 同期</button>
+        <button onclick="copyLog()" style="flex:1; padding:12px; border-radius:10px; background:var(--accent); border:none; font-weight:bold; color:black;">📋 コピー</button>
+        <button onclick="generateRandom20()" style="flex:1; padding:12px; border-radius:10px; background:#6200ee; border:none; color:white; font-weight:bold;">🎲 20選</button>
+        <button onclick="fetchData(true)" style="flex:0.7; padding:12px; border-radius:10px; background:#444; border:none; color:white;">🔄 同期</button>
         <button onclick="logout()" style="padding:12px; border-radius:10px; background:var(--error); border:none; color:white;">🚪</button>
       </div>
     </div>
