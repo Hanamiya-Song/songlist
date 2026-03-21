@@ -462,24 +462,37 @@
   currentRequests.forEach(req => {
     const div = document.createElement('div');
     div.className = 'request-item';
+    div.style.cursor = 'pointer'; // クリックできることを明示
 
-    // 重要：allSongsの中から、リクエストされた曲名とアーティストが一致する「完全なデータ」を探す
-    const fullSongData = allSongs.find(s => s.name === req.name && s.artist === req.artist);
+    // 1. 全曲リストからURL等のフルデータを探す（名前とアーティストで照合）
+    const fullSongData = allSongs.find(s => 
+      s.name.trim() === req.name.trim() && 
+      s.artist.trim() === req.artist.trim()
+    );
 
-    // クリック時の挙動：
-    // フルデータがあればそれを使う。なければリクエスト情報だけでメニューを開く。
+    // 2. HTMLを先に組み立てる
+    div.innerHTML = `
+      <div style="flex:1">
+        <b style="color:var(--accent);">${req.name}</b><br>
+        <small style="color:#888;">${req.artist}</small>
+      </div>
+      <button class="del-btn" id="del-${req.id}">削除</button>
+    `;
+
+    // 3. 要素全体へのクリックイベント（管理メニュー表示）を登録
     div.onclick = () => {
+      // 見つかればリンク入りのデータ、なければリクエスト情報のみでメニューを開く
       const targetData = fullSongData || { name: req.name, artist: req.artist };
       showAdminMenu(targetData, true, req.id);
     };
 
-    div.innerHTML = `
-      <div style="flex:1">
-        <b>${req.name}</b><br>
-        <small>${req.artist}</small>
-      </div>
-      <button class="del-btn" onclick="event.stopPropagation(); deleteReq('${req.id}')">削除</button>
-    `;
+    // 4. 削除ボタンだけは管理メニューが開かないようにガード
+    const delBtn = div.querySelector(`#del-${req.id}`);
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 親要素（div）のクリックイベントを発生させない
+      deleteReq(req.id);
+    };
+
     list.appendChild(div);
   });
 }
