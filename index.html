@@ -129,7 +129,17 @@
   <div class="content-area">
     <div id="page-music" class="page active">
       <div id="tabContainer">読み込み中...</div>
-      <input type="text" id="searchBox" placeholder="🔍 曲名・アーティストで検索..." oninput="filterSongs()">
+      
+      <div style="display: flex; gap: 8px; margin: 10px 0; flex-shrink: 0;">
+        <input type="text" id="searchBox" placeholder="🔍 曲名・アーティストで検索..." oninput="filterSongs()" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: white; font-size: 16px; outline: none; box-sizing: border-box;">
+        
+        <select id="sortSelect" onchange="filterSongs()" style="width: 100px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--accent); font-size: 11px; outline: none; cursor: pointer; padding: 0 5px;">
+          <option value="artist">アーティスト順</option>
+          <option value="name">曲名順</option>
+          <option value="date">直近歌った順</option>
+        </select>
+      </div>
+
       <div id="songList"></div>
     </div>
     <div id="page-log" class="page">
@@ -243,20 +253,46 @@
 
     function filterSongs() {
       const query = document.getElementById('searchBox')?.value.toLowerCase() || "";
+      const sortType = document.getElementById('sortSelect')?.value || "artist"; // ★追加：並べ替えの種類を取得
       const container = document.getElementById('songList');
       container.innerHTML = '';
-      let f = [...allSongs];
-      if (currentTab === "大森元貴曲") f = f.filter(s => OHMORI_GROUP.includes(s.artist));
-      else if (currentTab === "最近歌った順") f.sort((a,b) => new Date(b.lastSung) - new Date(a.lastSung));
-      else if (currentTab !== "すべて") f = f.filter(s => s.artist === currentTab);
-      if (query) f = f.filter(s => s.name.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query));
       
+      let f = [...allSongs];
+
+      // 1. タブによる絞り込み
+      if (currentTab === "大森元貴曲") {
+        f = f.filter(s => OHMORI_GROUP.includes(s.artist));
+      } else if (currentTab === "最近歌った順") {
+        // 最近歌った順タブが選ばれている時は強制的に日付ソート
+        f.sort((a,b) => new Date(b.lastSung) - new Date(a.lastSung));
+      } else if (currentTab !== "すべて") {
+        f = f.filter(s => s.artist === currentTab);
+      }
+
+      // 2. 検索ワードによる絞り込み
+      if (query) {
+        f = f.filter(s => s.name.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query));
+      }
+
+      // 3. 並べ替え（ソート）の実行
+      f.sort((a, b) => {
+        if (sortType === "name") return a.name.localeCompare(b.name, 'ja');
+        if (sortType === "date") {
+          const dateA = new Date(a.lastSung || "1900-01-01");
+          const dateB = new Date(b.lastSung || "1900-01-01");
+          return dateB - dateA;
+        }
+        // デフォルト（artist）
+        return a.artist.localeCompare(b.artist, 'ja');
+      });
+
+      // 4. 画面に表示
       f.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'songBtn';
         btn.onclick = () => onSongTap(s);
         const dateStr = (s.lastSung && s.lastSung !== "1900-01-01") ? s.lastSung : "";
-        btn.innerHTML = `<div class="btn-main"><span class="btn-title">${s.name}</span><span class="btn-artist">${s.artist}</span></div><span class="btn-date">${dateStr}</span>`;
+        btn.innerHTML = `<div class="btn-main"><span class="btn-title">${s.name}</span><span class="btn-artist">${s.artist}</span></div><span class="btn-date" style="font-size:10px; color:var(--accent); font-family:monospace;">${dateStr}</span>`;
         container.appendChild(btn);
       });
     }
