@@ -178,10 +178,20 @@
 }
 
 /* スクロールバーを細くしてデザインを崩さない */
-#songList::-webkit-scrollbar, #messageList::-webkit-scrollbar {
+/* 名前を「#songList」から「#modalSongList」に変えるのがポイント！ */
+#modalSongList::-webkit-scrollbar, #messageList::-webkit-scrollbar {
   width: 4px;
 }
-#songList::-webkit-scrollbar-thumb, #messageList::-webkit-scrollbar-thumb {
+#modalSongList::-webkit-scrollbar-thumb, #messageList::-webkit-scrollbar-thumb {
+  background: var(--accent); /* 色をアクセントカラーにするとカッコいいです */
+  border-radius: 10px;
+}
+
+/* トップページのメインリスト用（こっちはそのままでOK） */
+#songList::-webkit-scrollbar {
+  width: 4px;
+}
+#songList::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 10px;
 }
