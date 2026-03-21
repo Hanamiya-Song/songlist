@@ -307,20 +307,74 @@
 
     function onSongTap(song, isFromRequest = false, requestId = null) {
       if (IS_ADMIN) {
-        document.getElementById('confirmTitle').innerText = song.name;
-        document.getElementById('confirmOverlay').style.display = 'flex';
-        document.getElementById('execSingBtn').onclick = async () => {
-          if (!isRunning) return alert("STARTを押してください");
-          executeSing(song);
-          if (isFromRequest && requestId) callGAS({ action: "deleteRequest", id: requestId });
-          closeConfirm();
-          if (isFromRequest) closeRequestModal();
-        };
+        showAdminMenu(song, isFromRequest, requestId);
       } else {
         if (confirm(`「${song.name}」をリクエストしますか？`)) {
           callGAS({ action: "sendRequest", name: song.name, artist: song.artist }, true).then(() => alert("送信しました！"));
         }
       }
+    }
+
+    // 管理者用：歌唱確認とリンク選択を出す
+    function showAdminMenu(song, isFromRequest, requestId) {
+      const titleEl = document.getElementById('confirmTitle');
+      const card = document.querySelector('.confirm-card');
+      const btnContainer = card.querySelector('div[style*="display:flex"]');
+      const pText = card.querySelector('p');
+      
+      titleEl.innerText = song.name;
+      
+      // 既存のリンクボタンがあれば削除（リセット）
+      const oldLinks = document.getElementById('adminLinkGroup');
+      if (oldLinks) oldLinks.remove();
+
+      // リンクボタンを作成するコンテナ
+      const linkGroup = document.createElement('div');
+      linkGroup.id = 'adminLinkGroup';
+      linkGroup.style = "display:flex; flex-direction:column; gap:10px; margin-bottom:20px;";
+
+      // 各URLが存在する場合のみボタンを作成
+      const links = [
+        { label: "🎸 U-FRET", url: song.ufret },
+        { label: "🎼 Chordwiki", url: song.chordwiki },
+        { label: "📖 リンネのコードブック", url: song.linne }
+      ];
+
+      let hasLink = false;
+      links.forEach(link => {
+        if (link.url && link.url.trim() !== "") {
+          const a = document.createElement('a');
+          a.href = link.url;
+          a.target = "_blank";
+          a.innerText = link.label;
+          a.style = "display:block; padding:12px; background:#333; color:var(--primary); text-decoration:none; border-radius:10px; font-size:13px; font-weight:bold; border:1px solid #444;";
+          linkGroup.appendChild(a);
+          hasLink = true;
+        }
+      });
+
+      // リンクがある場合は、タイトルのすぐ下に挿入
+      if (hasLink) {
+        titleEl.after(linkGroup);
+      }
+
+      // 「歌う！」ボタンの設定
+      document.getElementById('execSingBtn').onclick = async () => {
+        if (!isRunning) return alert("STARTを押してください");
+        executeSing(song);
+        if (isFromRequest && requestId) callGAS({ action: "deleteRequest", id: requestId });
+        closeConfirm();
+        if (isFromRequest) closeRequestModal();
+      };
+
+      document.getElementById('confirmOverlay').style.display = 'flex';
+    }
+
+    // 閉じる時にリンク表示をリセットする
+    function closeConfirm() {
+      document.getElementById('confirmOverlay').style.display = 'none';
+      const oldLinks = document.getElementById('adminLinkGroup');
+      if (oldLinks) oldLinks.remove();
     }
 
     async function handleAction() {
