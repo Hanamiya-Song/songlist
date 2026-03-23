@@ -207,8 +207,14 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg); /* 背景を透過させない */
+  /* 背景を真っ黒ではなく、少し透ける黒にする */
+  background: rgba(18, 18, 18, 0.7); 
+  /* 背景をぼかす（これを入れると文字が重なっても読みやすくなります） */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* iPhone/Safari用 */
   padding-bottom: 5px;
+  /* 下の境界線を少しだけ入れると境目がはっきりします（お好みで） */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* 既存の tabContainer のボーダーを少し調整 */
