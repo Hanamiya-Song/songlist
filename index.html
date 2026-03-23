@@ -19,30 +19,32 @@
     
     /* 追加：Safariのバウンス時（引っ張った時）に出る謎の白を黒で塗りつぶす */
     html {
-  /* 隙間をこの色で強制的に埋める */
-  background-color: #121212 !important;
+  /* 黒い帯が出る場所にこの色が塗られるので、背景に近い色を指定 */
+  background-color: #121212;
   height: 100%;
 }
 
-    body {
-  /* 固定の height を削除して min-height に変更 */
-  min-height: 100vh;
-  min-height: 100dvh; 
-  
-  /* 重要：スクロールを禁止しているなら解除する */
-  overflow: auto; 
-  
+body {
+  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
   margin: 0;
   padding: 0;
 
-  /* 背景の設定をここ（body）に集約 */
+  /* 背景指定 */
   background: 
     linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
     url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  background-attachment: fixed;
+  background-attachment: fixed; /* これでスクロールしても背景が動かない */
+
+  /* 高さの設定：min-heightにしておけば、コンテンツが長くても背景が途切れません */
+  min-height: 100vh;
+  min-height: 100dvh; 
+  
+  /* bodyでのoverflow: hiddenは削除しましょう。スクロールできなくなります */
+  display: flex;
+  flex-direction: column;
 }
 
     /* iPhoneノッチ対策: 完全に不透明な背景色を指定して網掛けを防止 */
