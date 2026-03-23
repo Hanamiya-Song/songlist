@@ -212,6 +212,37 @@ body {
       background: #333;
       border-radius: 10px;
     }
+
+    /* トップに戻るボタン */
+    #pageTopBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 45px;
+      height: 45px;
+      background: var(--accent); /* アクセントカラー（紫） */
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      
+      /* フェードイン・アウトのアニメーション */
+      opacity: 0;
+      pointer-events: none; /* 見えない時はクリック判定をなくす */
+      transition: opacity 0.3s ease;
+    }
+
+    #pageTopBtn.show {
+      opacity: 1;
+      pointer-events: auto; /* 見えるようになったらクリック可能に */
+    }
   </style>
 </head>
 <body>
@@ -336,6 +367,8 @@ body {
       <button onclick="sendChatMessage()" style="width:100%; padding:15px; background:var(--accent); color:black; font-weight:bold; border-radius:12px; border:none; margin-top:15px; font-size:16px;">送信する</button>
     </div>
   </div>
+
+  <button id="pageTopBtn" onclick="scrollToTop()">↑</button>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxZ3tWsNEBIwv0-wHPRhBqzFzaeDjrQdMdP8r8p3SBQOjmpJNHa3ZUmnRfzBhgbDunzPA/exec";
@@ -672,6 +705,39 @@ body {
     function closeConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; const oldLinks = document.getElementById('adminLinkGroup'); if (oldLinks) oldLinks.remove(); }
     function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
     function copyLog() { navigator.clipboard.writeText(document.getElementById('resultArea').value); alert("コピーしました"); }
+
+    // --- トップに戻るボタンの処理 ---
+    
+    // スクロール検知（少しでもスクロールしたら表示）
+    window.addEventListener('DOMContentLoaded', () => {
+      const pages = document.querySelectorAll('.page');
+      const topBtn = document.getElementById('pageTopBtn');
+
+      pages.forEach(page => {
+        page.addEventListener('scroll', () => {
+          // 現在表示されているページでのみ判定する
+          if (!page.classList.contains('active')) return;
+          
+          // 上から50px以上スクロールしたらボタンを表示
+          if (page.scrollTop > 50) {
+            topBtn.classList.add('show');
+          } else {
+            topBtn.classList.remove('show');
+          }
+        });
+      });
+    });
+
+    // トップへなめらかにスクロールする関数
+    function scrollToTop() {
+      const activePage = document.querySelector('.page.active');
+      if (activePage) {
+        activePage.scrollTo({
+          top: 0,
+          behavior: 'smooth' // なめらかにスクロール（iOS/モダンブラウザ対応）
+        });
+      }
+    }
   </script>
 </body>
 </html>
