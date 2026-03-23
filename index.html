@@ -82,20 +82,13 @@
     .view-tab.active { background: var(--card); color: var(--accent); }
     
     .content-area { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    .page { 
-      position: absolute; 
-      top: 0; left: 0; 
-      width: 100%; 
-      height: 100%; 
-      display: none; 
-      flex-direction: column; 
-      padding: 0;
-      margin: 0;
-      box-sizing: border-box; 
-      overflow-y: auto; 
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
+    .page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; /* 画面いっぱいの高さ */
+  overflow: hidden; /* 親のスクロールを禁止 */
+  padding: 0; /* 余計な余白を消す */
+}
     .page.active { display: flex; }
 
     #tabContainer { display: flex; overflow-x: auto; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 10; -webkit-overflow-scrolling: touch; }
@@ -104,8 +97,14 @@
     
     #searchBox { flex: 1; height: 46px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: white; font-size: 16px; outline: none; box-sizing: border-box; margin: 0; }
     #sortSelect { width: 105px; height: 46px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--accent); font-size: 11px; outline: none; cursor: pointer; padding: 0 5px; box-sizing: border-box; text-align: center; }
-
-    #songList { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+　　.scroll-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* このエリアより上は「表示領域外」になるので、曲が消えます */
+}
+    #songList { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; padding: 10px; }
     .songBtn { background: rgba(30, 30, 30, 0.7); color: var(--text); border: 1px solid var(--border); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; backdrop-filter: blur(5px); }
     .btn-main { display: flex; flex-direction: column; flex: 1; text-align: left; overflow: hidden; }
     .btn-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -208,26 +207,12 @@
     /* タブと検索エリアをまとめるコンテナを固定する */
 /* 固定バー全体の設定 */
 .sticky-controls {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 100;
-
-  /* 1. 背景画像を指定（bodyに設定しているものと同じURL） */
-  background-image: url('https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true'); 
-  
-  /* 2. 画像の位置を画面全体で固定する（これが魔法の1行です） */
-  background-attachment: fixed; 
-  background-size: cover;
-  background-position: center;
-
-  /* 3. 検索窓や文字を見やすくするため、薄く色を重ねる（任意） */
-  background-color: rgba(18, 18, 18, 0.8);
-  background-blend-mode: darken;
-
+  background: transparent; 
+  padding: 10px 10px 0 10px; /* 下以外の余白 */
   width: 100%;
-  padding: 10px;
   box-sizing: border-box;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* 【ここが重要】アーティストタブの設定 */
@@ -235,13 +220,10 @@
   display: flex;
   overflow-x: auto;
   gap: 8px;
-  padding: 10px 10px; /* 上下10px、左右にも10px余白を持たせる */
-  
-  /* 親のpadding(10px)を打ち消して画面端まで広げる */
+  padding: 10px;
   margin-left: -10px;
   margin-right: -10px;
-  
-  /* スクロールバーを隠す設定 */
+  border-bottom: 1px solid var(--border);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -285,19 +267,28 @@
 
   <div class="content-area">
     <div id="page-music" class="page active">
-  <!-- ここから固定エリア -->
+  <!-- 固定部分 -->
   <div class="sticky-controls">
-    <div id="tabContainer">読み込み中...</div>
-    
+    <div id="tabContainer">
+      <!-- ここにアーティストタブが生成される -->
+    </div>
     <div style="display: flex; gap: 8px; margin: 10px 0; height: 46px;">
-      <input type="text" id="searchBox" placeholder="🔍 曲名・アーティストで検索..." oninput="filterSongs()">
-      <select id="sortSelect" onchange="filterSongs()">
+      <input type="text" id="searchBox" placeholder="曲名・アーティスト名で検索..." oninput="filterSongs()">
+      <select id="sortSelect" onchange="sortSongs()">
         <option value="artist">アーティスト順</option>
-        <option value="name">曲名順</option>
-        <option value="date">直近歌った順</option>
+        <option value="newest">新しい順</option>
+        <option value="oldest">古い順</option>
       </select>
     </div>
   </div>
+
+  <!-- スクロール部分：ここを追加！ -->
+  <div class="scroll-content">
+    <div id="songList">
+      <!-- ここに曲ボタンが生成される -->
+    </div>
+  </div>
+</div>
 
       <div id="songList"></div>
     </div>
