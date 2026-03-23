@@ -15,177 +15,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>HanamiYa</title>
   <style>
+    /* CSSは元のまま変更なし */
     :root { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --accent: #bb86fc; --primary: #03dac6; --error: #cf6679; --success: #28a745; --border: #333; }
     
-    /* 追加：Safariのバウンス時（引っ張った時）に出る謎の白を黒で塗りつぶす */
-    html {
-  /* 黒い帯が出る場所にこの色が塗られるので、背景に近い色を指定 */
-  background-color: #121212;
-  height: 100%;
-}
+    html { background-color: #121212; height: 100%; }
 
-body {
-  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
-  margin: 0;
-  padding: 0;
-
-  /* 背景指定 */
-  background: 
-    linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
-    url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-  background-attachment: fixed; /* これでスクロールしても背景が動かない */
-
-  /* 高さの設定：min-heightにしておけば、コンテンツが長くても背景が途切れません */
-  min-height: 100vh;
-  min-height: 100dvh; 
-  
-  /* bodyでのoverflow: hiddenは削除しましょう。スクロールできなくなります */
-  display: flex;
-  flex-direction: column;
-}
-
-    /* iPhoneノッチ対策: 完全に不透明な背景色を指定して網掛けを防止 */
-    .header-fixed { 
-      background: #1a1a1a; 
-      padding: 10px 15px; 
-      border-bottom: 1px solid var(--border); 
-      flex-shrink: 0; 
-      z-index: 100;
-      padding-top: calc(10px + env(safe-area-inset-top)); 
+    body {
+      font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+      margin: 0; padding: 0;
+      background: linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)), url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
+      background-repeat: no-repeat; background-position: center; background-size: cover; background-attachment: fixed;
+      min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
     }
 
+    .header-fixed { background: #1a1a1a; padding: 10px 15px; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100; padding-top: calc(10px + env(safe-area-inset-top)); }
     .header-row { display: flex; justify-content: space-between; align-items: center; min-height: 44px; gap: 5px; flex-wrap: wrap; }
-    
     .title-group { display: flex; flex-direction: column; line-height: 1.2; flex: 1; min-width: 120px; }
     #guestTitle { font-family: 'Orbitron', sans-serif ;font-size: 20px; font-weight: bold; color: var(--accent); }
     .sub-desc { font-size: 10px; color: #888; margin-top: 2px; }
-
     #timerDisplay { font-size: 26px; font-weight: bold; font-family: monospace; color: var(--primary); display: none; }
     .admin-only { display: none; }
-
     #loginBtn { background: transparent; color: #666; border: 1px solid #444; padding: 8px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; white-space: nowrap; }
-    
-    #actionBtn { 
-      background: var(--success); 
-      color: white; 
-      border: none; 
-      padding: 10px 20px; 
-      border-radius: 20px; 
-      font-size: 14px; 
-      font-weight: bold; 
-      min-width: 95px;
-      cursor: pointer;
-    }
+    #actionBtn { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; min-width: 95px; cursor: pointer; }
     #actionBtn.active { background: var(--error); }
-    
     .view-selector { display: none; background: #252525; border-radius: 10px; padding: 3px; margin-top: 10px; gap: 4px; }
     .view-tab { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; color: #888; }
     .view-tab.active { background: var(--card); color: var(--accent); }
-    
     .content-area { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; width: 100%; }
-    .page { 
-      position: absolute; 
-      top: 0; left: 0; 
-      width: 100%; 
-      height: 100%; 
-      display: none; 
-      flex-direction: column; 
-      padding: 0 10px; 
-      box-sizing: border-box; 
-      overflow-y: auto; 
-      overflow-x: hidden; /* これを追加：横方向のはみ出しを禁止 */
-      -webkit-overflow-scrolling: touch;
-    }
+    .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; padding: 0 10px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
     .page.active { display: flex; }
-
-    /* --- 追加・変更：検索とタブの固定エリア --- */
-    .sticky-controls {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(18, 18, 18, 0.95);
-      backdrop-filter: blur(8px);
-      /* 左右のマイナスマージンを維持しつつ、幅を calc で調整 */
-      margin: 0 -10px; 
-      width: calc(100% + 20px); 
-      padding: 0 10px 10px 10px;
-      border-bottom: 1px solid var(--border);
-      box-sizing: border-box; /* 必須 */
-    }
-
-    #tabContainer { 
-      display: flex; 
-      overflow-x: auto; 
-      gap: 8px; 
-      /* ここも width を calc で制御 */
-      margin: 0 -10px; 
-      width: calc(100% + 20px);
-      padding: 12px 10px; 
-      flex-shrink: 0; 
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      box-sizing: border-box; /* 必須 */
-    }
-    /* Chrome/Safari用スクロールバー非表示（タブ周りをスッキリさせるため） */
+    .sticky-controls { position: sticky; top: 0; z-index: 50; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(8px); margin: 0 -10px; width: calc(100% + 20px); padding: 0 10px 10px 10px; border-bottom: 1px solid var(--border); box-sizing: border-box; }
+    #tabContainer { display: flex; overflow-x: auto; gap: 8px; margin: 0 -10px; width: calc(100% + 20px); padding: 12px 10px; flex-shrink: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; box-sizing: border-box; }
     #tabContainer::-webkit-scrollbar { display: none; }
-
     .artist-tab { padding: 8px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; color: #888; flex-shrink: 0; }
     .artist-tab.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
-    
-    input, select, textarea {
-      background: var(--card) !important;
-      color: white !important;
-      border: 1px solid var(--border) !important;
-    }
-
-    .search-row {
-      display: flex; gap: 8px; height: 46px;
-    }
-
+    input, select, textarea { background: var(--card) !important; color: white !important; border: 1px solid var(--border) !important; }
+    .search-row { display: flex; gap: 8px; height: 46px; }
     #searchBox { flex: 1; height: 100%; padding: 0 12px; border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box; margin: 0; }
     #sortSelect { width: 105px; height: 100%; border-radius: 10px; font-size: 11px; outline: none; cursor: pointer; padding: 0 5px; box-sizing: border-box; text-align: center; }
-
     #songList { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 10px; padding-bottom: 20px; }
-    /* ------------------------------------------ */
-
     .songBtn { background: rgba(30, 30, 30, 0.7); color: var(--text); border: 1px solid var(--border); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; backdrop-filter: blur(5px); }
     .btn-main { display: flex; flex-direction: column; flex: 1; text-align: left; overflow: hidden; }
     .btn-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .btn-artist { font-size: 11px; color: #888; }
     .btn-date { font-size: 12px; color: var(--accent); font-family: monospace; margin-left: 10px; white-space: nowrap; }
-    
-    .msg-btn { 
-      background: transparent; 
-      color: var(--accent); 
-      border: 1px solid var(--accent); 
-      padding: 8px 10px; 
-      border-radius: 8px; 
-      font-size: 11px; 
-      font-weight: bold;
-      cursor: pointer; 
-      white-space: nowrap; 
-    }
-
-    #msgModal textarea {
-      width: 100%; 
-      height: 150px; 
-      padding: 15px; 
-      font-size: 16px; 
-      outline: none; 
-      box-sizing: border-box; 
-      resize: none;
-    }
+    .msg-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 8px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    #msgModal textarea { width: 100%; height: 150px; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; resize: none; }
     .add-section { background: #252525; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; flex-shrink: 0; margin-top: 10px; }
     .add-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; box-sizing: border-box; }
     .add-row input { flex: 1; min-width: 0; padding: 10px; border-radius: 5px; font-size: 13px; box-sizing: border-box; }
     .add-row select { padding: 10px; border-radius: 5px; font-size: 13px; width: 100px; box-sizing: border-box; }
     .add-btn { width: 100%; padding: 12px; border-radius: 5px; background: var(--primary); color: black; font-weight: bold; border: none; cursor: pointer; }
-    
     #resultArea { width: 100%; height: 130px; background: #000 !important; color: #0f0 !important; border: none; padding: 15px; font-family: monospace; border-radius: 10px; margin: 10px 0; resize: none; box-sizing: border-box; }
-    
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: var(--accent); }
     .modal-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -194,55 +75,12 @@ body {
     .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 4000; }
     .confirm-card { background: var(--card); padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid var(--accent); max-width: 400px; }
     #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999; color:white; font-weight:bold; }
-    
-    #modalSongList, #messageList {
-      max-height: 200px;
-      overflow-y: auto;
-      padding-right: 5px;
-    }
-
-    #modalSongList::-webkit-scrollbar, #messageList::-webkit-scrollbar, .page::-webkit-scrollbar {
-      width: 4px;
-    }
-    #modalSongList::-webkit-scrollbar-thumb, #messageList::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 10px;
-    }
-    .page::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 10px;
-    }
-
-    /* トップに戻るボタン */
-    #pageTopBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 45px;
-      height: 45px;
-      background: var(--accent); /* アクセントカラー（紫） */
-      color: #000;
-      border: none;
-      border-radius: 50%;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      
-      /* フェードイン・アウトのアニメーション */
-      opacity: 0;
-      pointer-events: none; /* 見えない時はクリック判定をなくす */
-      transition: opacity 0.3s ease;
-    }
-
-    #pageTopBtn.show {
-      opacity: 1;
-      pointer-events: auto; /* 見えるようになったらクリック可能に */
-    }
+    #modalSongList, #messageList { max-height: 200px; overflow-y: auto; padding-right: 5px; }
+    #modalSongList::-webkit-scrollbar, #messageList::-webkit-scrollbar, .page::-webkit-scrollbar { width: 4px; }
+    #modalSongList::-webkit-scrollbar-thumb, #messageList::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+    .page::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    #pageTopBtn { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: var(--accent); color: #000; border: none; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    #pageTopBtn.show { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body>
@@ -276,7 +114,6 @@ body {
 
   <div class="content-area">
     <div id="page-music" class="page active">
-      
       <div class="sticky-controls">
         <div id="tabContainer">読み込み中...</div>
         <div class="search-row">
@@ -288,7 +125,6 @@ body {
           </select>
         </div>
       </div>
-      
       <div id="songList"></div>
     </div>
 
@@ -371,14 +207,20 @@ body {
   <button id="pageTopBtn" onclick="scrollToTop()">↑</button>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxZ3tWsNEBIwv0-wHPRhBqzFzaeDjrQdMdP8r8p3SBQOjmpJNHa3ZUmnRfzBhgbDunzPA/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz_xNZr2LnyqjzZOHphi7RuqR9CRJg0ifwMAFjaU-un6b7_lTWYkSdO7Fvuj4gZL0NbeQ/exec";
     let IS_ADMIN = false;
-    const ADMIN_PASS = "0310"; 
     let startTime = null, isRunning = false, allSongs = [], currentRequests = [], currentTab = "すべて";
     const OHMORI_GROUP = ["Mrs. GREEN APPLE", "Siip", "大森元貴"];
 
+    // ★ セキュリティ対応：管理者操作の場合はSessionStorageからパスワードを付与して通信
     async function callGAS(params, showLoading = false) {
       if (showLoading) document.getElementById('loadingOverlay').style.display = 'flex';
+      
+      const adminActions = ['verifyAuth', 'addSong', 'deleteRequest', 'startFromExternal', 'clearExternalStart', 'updateDate', 'checkExternalStart', 'getRequests'];
+      if (adminActions.includes(params.action)) {
+        params.pass = sessionStorage.getItem('adminPass') || "";
+      }
+
       const queryString = new URLSearchParams(params).toString();
       try {
         const response = await fetch(`${GAS_URL}?${queryString}`);
@@ -387,13 +229,37 @@ body {
       finally { if (showLoading) document.getElementById('loadingOverlay').style.display = 'none'; }
     }
 
+    // ★ セキュリティ対応：ログイン時はGASに問い合わせて正誤判定
+    async function tryLogin() { 
+      const inputPass = prompt("パスワードを入力してください"); 
+      if (!inputPass) return;
+
+      sessionStorage.setItem('adminPass', inputPass); 
+      const res = await callGAS({ action: 'verifyAuth' }, true);
+      
+      if (res && res.success) {
+        applyAdminMode(true);
+      } else {
+        sessionStorage.removeItem('adminPass'); 
+        alert("パスワードが間違っています");
+      }
+    }
+
+    function logout() { 
+      sessionStorage.removeItem('adminPass');
+      localStorage.setItem('isAdminLoggedIn', 'false'); 
+      location.reload(); 
+    }
+
     window.onload = async () => {
-      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-      applyAdminMode(loggedIn);
+      // ログイン状態はSessionStorageの有無で判断するよう強化
+      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true' && sessionStorage.getItem('adminPass');
+      applyAdminMode(!!loggedIn);
       if (loggedIn) syncWithServer();
       fetchData(true);
     };
 
+    // ★ セキュリティ対応：DOM生成を安全なtextContentへ変更
     function generateRandom20() {
       if (allSongs.length === 0) return alert("曲リストが空です。同期してください。");
       let shuffled = [...allSongs].sort(() => 0.5 - Math.random());
@@ -402,17 +268,31 @@ body {
       const area = document.getElementById('randomSelectionArea');
       container.innerHTML = '';
       area.style.display = 'block';
+
       selected.forEach(s => {
         const row = document.createElement('div');
-        row.style = "display:flex; gap:10px; align-items:center; background:var(--card); padding:10px; border-radius:8px; border:1px solid #333;";
+        row.style.cssText = "display:flex; gap:10px; align-items:center; background:var(--card); padding:10px; border-radius:8px; border:1px solid #333;";
+        
         const info = document.createElement('div');
-        info.style = "flex:1; cursor:pointer;";
-        info.innerHTML = `<span style="font-size:13px; font-weight:bold;">${s.name || "不明"}</span><br><small style="color:#888;">${s.artist || "不明"}</small>`;
+        info.style.cssText = "flex:1; cursor:pointer; display:flex; flex-direction:column;";
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.style.cssText = "font-size:13px; font-weight:bold;";
+        nameSpan.textContent = s.name || "不明";
+        
+        const artistSmall = document.createElement('small');
+        artistSmall.style.cssText = "color:#888;";
+        artistSmall.textContent = s.artist || "不明";
+        
+        info.appendChild(nameSpan);
+        info.appendChild(artistSmall);
         info.onclick = () => onSongTap(s);
+        
         const delBtn = document.createElement('button');
-        delBtn.innerText = "×";
-        delBtn.style = "background:none; border:none; color:var(--error); font-size:18px; padding:0 10px; cursor:pointer;";
+        delBtn.textContent = "×";
+        delBtn.style.cssText = "background:none; border:none; color:var(--error); font-size:18px; padding:0 10px; cursor:pointer;";
         delBtn.onclick = () => row.remove();
+        
         row.appendChild(info);
         row.appendChild(delBtn);
         container.appendChild(row);
@@ -453,18 +333,20 @@ body {
       const tabs = [{ id: "すべて", label: `すべて (${allSongs.length})` }];
       if (ohmoriTotal > 0) tabs.push({ id: "大森元貴曲", label: `大森元貴曲 (${ohmoriTotal})` });
       majorArtists.forEach(name => tabs.push({ id: name, label: `${name} (${counts[name]})` }));
+      
       const container = document.getElementById('tabContainer');
       container.innerHTML = '';
       tabs.forEach(tab => {
         const div = document.createElement('div');
         div.className = `artist-tab ${tab.id === currentTab ? 'active' : ''}`;
-        div.innerText = tab.label;
+        div.textContent = tab.label;
         div.onclick = () => { currentTab = tab.id; renderAll(); };
         container.appendChild(div);
       });
       filterSongs();
     }
 
+    // ★ セキュリティ対応：DOM生成を安全なtextContentへ変更
     function filterSongs() {
       const query = document.getElementById('searchBox')?.value.toLowerCase() || "";
       const sortType = document.getElementById('sortSelect')?.value || "artist";
@@ -491,8 +373,28 @@ body {
         const btn = document.createElement('button');
         btn.className = 'songBtn';
         btn.onclick = () => onSongTap(s);
-        const dateStr = (s.lastSung && s.lastSung !== "1900-01-01") ? s.lastSung : "";
-        btn.innerHTML = `<div class="btn-main"><span class="btn-title">${s.name || "無名"}</span><span class="btn-artist">${s.artist || "不明"}</span></div><span class="btn-date" style="font-size:10px; color:var(--accent); font-family:monospace;">${dateStr}</span>`;
+        
+        const mainDiv = document.createElement('div');
+        mainDiv.className = 'btn-main';
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'btn-title';
+        titleSpan.textContent = s.name || "無名";
+        
+        const artistSpan = document.createElement('span');
+        artistSpan.className = 'btn-artist';
+        artistSpan.textContent = s.artist || "不明";
+        
+        mainDiv.appendChild(titleSpan);
+        mainDiv.appendChild(artistSpan);
+        
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'btn-date';
+        dateSpan.style.cssText = "font-size:10px; color:var(--accent); font-family:monospace; margin-left:10px; white-space:nowrap;";
+        dateSpan.textContent = (s.lastSung && s.lastSung !== "1900-01-01") ? s.lastSung : "";
+        
+        btn.appendChild(mainDiv);
+        btn.appendChild(dateSpan);
         container.appendChild(btn);
       });
     }
@@ -508,7 +410,8 @@ body {
 
     function showAdminMenu(song, isFromRequest, requestId) {
       const titleEl = document.getElementById('confirmTitle');
-      titleEl.innerText = song.name || "不明な曲";
+      titleEl.textContent = song.name || "不明な曲";
+      
       const oldLinks = document.getElementById('adminLinkGroup');
       if (oldLinks) oldLinks.remove();
       const linkGroup = document.createElement('div');
@@ -520,7 +423,7 @@ body {
       links.forEach(link => {
         if (link.url && link.url.trim() !== "") {
           const a = document.createElement('a');
-          a.href = link.url; a.target = "_blank"; a.innerText = link.label;
+          a.href = link.url; a.target = "_blank"; a.textContent = link.label;
           a.style = "display:block; padding:12px; background:#333; color:var(--primary); text-decoration:none; border-radius:10px; font-size:13px; font-weight:bold; border:1px solid #444;";
           linkGroup.appendChild(a);
           hasLink = true;
@@ -560,7 +463,7 @@ body {
     function updateButtonUI(active) {
       const btn = document.getElementById('actionBtn');
       if (btn) {
-        btn.innerText = active ? "🛑 STOP" : "🎥 START";
+        btn.textContent = active ? "🛑 STOP" : "🎥 START";
         btn.classList.toggle('active', active);
       }
     }
@@ -607,17 +510,19 @@ body {
     function closeMsgModal() { document.getElementById('msgModal').style.display = 'none'; }
     
     async function checkRequests() {
+      if (!IS_ADMIN) return;
       const reqs = await callGAS({ action: "getRequests" });
-      if (reqs) {
+      if (reqs && !reqs.error) { // 認証エラー等でない場合のみ更新
         currentRequests = reqs;
         const badge = document.getElementById('requestBadge');
         if (badge) {
-          badge.innerText = reqs.length;
+          badge.textContent = reqs.length;
           badge.style.display = reqs.length > 0 ? 'block' : 'none';
         }
       }
     }
 
+    // ★ セキュリティ対応：DOM生成を安全なtextContentへ変更
     function openRequestModal() {
       const modal = document.getElementById('requestModal');
       const songList = document.getElementById('modalSongList'); 
@@ -636,15 +541,36 @@ body {
         const isChat = req.artist === "💬 MESSAGE";
         const div = document.createElement('div');
         div.className = 'request-item';
-        div.innerHTML = `
-          <div style="flex:1">
-            <b style="color:${isChat ? 'var(--primary)' : 'var(--accent)'};">${isChat ? '✉️ ' : '♪ '}${req.name || "内容なし"}</b><br>
-            <small style="color:#888;">${isChat ? '' : (req.artist || "")}</small>
-          </div>
-          <button class="del-btn" onclick="event.stopPropagation(); deleteReq('${req.id}')">削除</button>
-        `;
-        if (isChat) { messageList.appendChild(div); } 
-        else {
+        
+        const textWrapper = document.createElement('div');
+        textWrapper.style.flex = "1";
+        
+        const titleB = document.createElement('b');
+        titleB.style.color = isChat ? 'var(--primary)' : 'var(--accent)';
+        titleB.textContent = (isChat ? '✉️ ' : '♪ ') + (req.name || "内容なし");
+        
+        const artistSmall = document.createElement('small');
+        artistSmall.style.display = "block";
+        artistSmall.style.color = "#888";
+        artistSmall.textContent = isChat ? '' : (req.artist || "");
+        
+        textWrapper.appendChild(titleB);
+        textWrapper.appendChild(artistSmall);
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-btn';
+        delBtn.textContent = '削除';
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteReq(req.id);
+        };
+        
+        div.appendChild(textWrapper);
+        div.appendChild(delBtn);
+
+        if (isChat) { 
+          messageList.appendChild(div); 
+        } else {
           div.style.cursor = 'pointer';
           div.onclick = () => {
             const fullSongData = allSongs.find(s => (s.name || "").trim() === (req.name || "").trim());
@@ -692,51 +618,34 @@ body {
         const display = document.getElementById('timerDisplay');
         if (display) {
           if (hours > 0) {
-            display.innerText = `${hours}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            display.textContent = `${hours}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
           } else {
-            display.innerText = `${min}:${sec.toString().padStart(2, '0')}`;
+            display.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
           }
         }
       }
     }, 1000);
 
-    function tryLogin() { if (prompt("PASS?") === ADMIN_PASS) applyAdminMode(true); }
-    function logout() { localStorage.setItem('isAdminLoggedIn', 'false'); location.reload(); }
     function closeConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; const oldLinks = document.getElementById('adminLinkGroup'); if (oldLinks) oldLinks.remove(); }
     function closeRequestModal() { document.getElementById('requestModal').style.display = 'none'; }
     function copyLog() { navigator.clipboard.writeText(document.getElementById('resultArea').value); alert("コピーしました"); }
 
-    // --- トップに戻るボタンの処理 ---
-    
-    // スクロール検知（少しでもスクロールしたら表示）
+    // スクロール検知
     window.addEventListener('DOMContentLoaded', () => {
       const pages = document.querySelectorAll('.page');
       const topBtn = document.getElementById('pageTopBtn');
-
       pages.forEach(page => {
         page.addEventListener('scroll', () => {
-          // 現在表示されているページでのみ判定する
           if (!page.classList.contains('active')) return;
-          
-          // 上から50px以上スクロールしたらボタンを表示
-          if (page.scrollTop > 50) {
-            topBtn.classList.add('show');
-          } else {
-            topBtn.classList.remove('show');
-          }
+          if (page.scrollTop > 50) topBtn.classList.add('show');
+          else topBtn.classList.remove('show');
         });
       });
     });
 
-    // トップへなめらかにスクロールする関数
     function scrollToTop() {
       const activePage = document.querySelector('.page.active');
-      if (activePage) {
-        activePage.scrollTo({
-          top: 0,
-          behavior: 'smooth' // なめらかにスクロール（iOS/モダンブラウザ対応）
-        });
-      }
+      if (activePage) { activePage.scrollTo({ top: 0, behavior: 'smooth' }); }
     }
   </script>
 </body>
