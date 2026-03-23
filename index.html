@@ -23,7 +23,8 @@
       margin: 0; padding: 0; 
       display: flex; flex-direction: column; 
       height: 100dvh; box-sizing: border-box; 
-      overflow: hidden; 
+      overflow-x: hidden;
+      width: 100%;
       background-image: url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
       background-repeat: no-repeat;
       background-position: calc(50% + 42px) 50%;
@@ -88,9 +89,11 @@
       height: 100%; 
       display: none; 
       flex-direction: column; 
-      padding: 0 10px; 
+      padding: 0;
+      margin: 0;
       box-sizing: border-box; 
       overflow-y: auto; 
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
     }
     .page.active { display: flex; }
@@ -203,33 +206,38 @@
   border-radius: 10px;
 }
     /* タブと検索エリアをまとめるコンテナを固定する */
+/* 固定バー全体の設定 */
 .sticky-controls {
   position: sticky;
   top: 0;
   z-index: 100;
-  /* 曲のボタンと同じ透け感 */
+  width: 100%; /* 横幅いっぱい */
   background: rgba(30, 30, 30, 0.7); 
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-
-  /* 【重要】親の padding (10px) を打ち消して画面端まで広げる */
-  margin-left: -10px;
-  margin-right: -10px;
   
-  /* 【重要】中身が端にくっつかないように内側に余白を戻す */
+  /* 中身が端に寄りすぎないように内側にだけ10px入れる */
   padding: 5px 10px; 
-  
+  box-sizing: border-box; /* これを入れないとpadding分だけ外にハミ出します */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* タブコンテナの余白も微調整して端までスクロールしやすくする */
+/* 【ここが重要】アーティストタブの設定 */
 #tabContainer {
   display: flex;
   overflow-x: auto;
   gap: 8px;
-  padding: 10px 0;
+  padding: 10px 10px; /* 上下10px、左右にも10px余白を持たせる */
+  
+  /* 親のpadding(10px)を打ち消して画面端まで広げる */
+  margin-left: -10px;
+  margin-right: -10px;
+  
+  /* スクロールバーを隠す設定 */
   -webkit-overflow-scrolling: touch;
 }
+
+/* 検索窓などはそのままでOK（親のpadding 10pxが効いてちょうど良い位置にくる） */
 
 /* ページ全体のスクロール設定を確認 */
 .page {
