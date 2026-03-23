@@ -511,12 +511,26 @@
       }
     }
 
-    function executeSing(song) {
-      const timeStr = document.getElementById('timerDisplay').innerText;
-      // ログに「1:05:00 曲名」といった形式で追記されます
-      document.getElementById('resultArea').value += `${timeStr} ${song.name}\n`;
-      if (song.id) callGAS({ action: "updateDate", id: song.id });
-    }
+    // ログが更新されるたびに保存する処理（例）
+function executeSing(song) {
+  const timeStr = document.getElementById('timerDisplay').innerText;
+  const logLine = `${timeStr} ${song.name}\n`;
+  const area = document.getElementById('resultArea');
+  
+  area.value += logLine;
+  // ブラウザに一時保存
+  localStorage.setItem('setlist_backup', area.value);
+  
+  if (song.id) callGAS({ action: "updateDate", id: song.id });
+}
+
+// ページ読み込み時に復活させる処理
+window.addEventListener('load', () => {
+  const backup = localStorage.getItem('setlist_backup');
+  if (backup) {
+    document.getElementById('resultArea').value = backup;
+  }
+});
 
     function applyAdminMode(isAdmin) {
       IS_ADMIN = isAdmin;
