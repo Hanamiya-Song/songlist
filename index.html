@@ -499,6 +499,10 @@
           isRunning = false;
           updateButtonUI(false);
           await callGAS({ action: 'clearExternalStart' });
+          localStorage.removeItem('setlist_backup');
+          document.getElementById('resultArea').value = ""; // 画面上も空にする
+          // --------------------------------------------
+        }
         }
       }
     }
@@ -524,9 +528,12 @@ function executeSing(song) {
   if (song.id) callGAS({ action: "updateDate", id: song.id });
 }
 
-// ページ読み込み時に復活させる処理
+// ページ読み込み時に復活させる処理（修正版）
 window.addEventListener('load', () => {
   const backup = localStorage.getItem('setlist_backup');
+  // タイマーが動いている（isRunningがtrue）かつバックアップがある場合のみ表示
+  // ※サーバー同期を待つ必要があるため、setTimeoutで少し遅らせるか、
+  // syncWithServerの結果を待ってから判定するのが確実です。
   if (backup) {
     document.getElementById('resultArea').value = backup;
   }
