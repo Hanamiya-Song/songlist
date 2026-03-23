@@ -4,6 +4,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HanamiYa">
+  <meta name="theme-color" content="#121212">
 
   <link rel="apple-touch-icon" href="https://github.com/Hanamiya-Song/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true">
 
@@ -11,61 +12,44 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
-　<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>My Song List</title>
   <style>
     :root { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --accent: #bb86fc; --primary: #03dac6; --error: #cf6679; --success: #28a745; --border: #333; }
     
-    body { 
-  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif; 
-  /* 背景指定を1つにまとめ、透過レイヤーを画像の上に重ねます */
-  background: 
-    linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
-    url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover; 
-  background-attachment: fixed;
-  margin: 0; padding: 0; 
-  display: flex; flex-direction: column; 
-  height: 100vh; /* min-heightより固定の方が安定します */
-  box-sizing: border-box; 
-  overflow: hidden; 
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  background-color: #121212; /* 万が一の背景色 */
-  overflow: hidden;
-}
+    /* 追加：Safariのバウンス時（引っ張った時）に出る謎の白を黒で塗りつぶす */
+    html {
+      background-color: var(--bg);
+      height: 100%;
+    }
 
-    body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100dvh; /* 動的ビューポート（アドレスバー対応） */
-  background: 
-    linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
-    url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
-  background-size: cover;
-  background-position: center;
-  z-index: -1; /* コンテンツの裏側に配置 */
-}
+    body { 
+      font-family: 'Segoe UI', 'Noto Sans JP', sans-serif; 
+      /* 背景指定を1つにまとめ、透過レイヤーを画像の上に重ねます */
+      background: 
+        linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
+        url("https://github.com/iceplagaming-cmyk/songlist/blob/main/7808d4bc-bbc7-446e-85a7-ea2b581164bb.jpg?raw=true");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover; 
+      background-attachment: fixed;
+      margin: 0; padding: 0; 
+      display: flex; flex-direction: column; 
+      height: 100vh; /* min-heightより固定の方が安定します（古いブラウザ用） */
+      height: 100dvh; /* 追加：Safariの上下バーを考慮した完璧な全画面指定 */
+      box-sizing: border-box; 
+      overflow: hidden; 
+    }
 
     /* iPhoneノッチ対策: 完全に不透明な背景色を指定して網掛けを防止 */
-    .header-fixed {
-  width: 100%;
-  background: rgba(26, 26, 26, 0.9);
-  backdrop-filter: blur(10px);
-  /* ここがポイント：背景は上まで行くが、文字はノッチの下から開始 */
-  padding-top: env(safe-area-inset-top); 
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+    .header-fixed { 
+      background: #1a1a1a; 
+      padding: 10px 15px; 
+      border-bottom: 1px solid var(--border); 
+      flex-shrink: 0; 
+      z-index: 100;
+      padding-top: calc(10px + env(safe-area-inset-top)); 
+    }
 
     .header-row { display: flex; justify-content: space-between; align-items: center; min-height: 44px; gap: 5px; flex-wrap: wrap; }
     
@@ -97,49 +81,48 @@
     
     .content-area { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; width: 100%; }
     .page { 
-  position: absolute; 
-  top: 0; left: 0; 
-  width: 100%; 
-  height: 100%; 
-  display: none; 
-  flex-direction: column; 
-  padding: 0 10px; 
-  box-sizing: border-box; 
-  overflow-y: auto; 
-  overflow-x: hidden; /* これを追加：横方向のはみ出しを禁止 */
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
-}
+      position: absolute; 
+      top: 0; left: 0; 
+      width: 100%; 
+      height: 100%; 
+      display: none; 
+      flex-direction: column; 
+      padding: 0 10px; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
+      overflow-x: hidden; /* これを追加：横方向のはみ出しを禁止 */
+      -webkit-overflow-scrolling: touch;
+    }
     .page.active { display: flex; }
 
     /* --- 追加・変更：検索とタブの固定エリア --- */
     .sticky-controls {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(18, 18, 18, 0.95);
-  backdrop-filter: blur(8px);
-  /* 左右のマイナスマージンを維持しつつ、幅を calc で調整 */
-  margin: 0 -10px; 
-  width: calc(100% + 20px); 
-  padding: 0 10px 10px 10px;
-  border-bottom: 1px solid var(--border);
-  box-sizing: border-box; /* 必須 */
-}
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(18, 18, 18, 0.95);
+      backdrop-filter: blur(8px);
+      /* 左右のマイナスマージンを維持しつつ、幅を calc で調整 */
+      margin: 0 -10px; 
+      width: calc(100% + 20px); 
+      padding: 0 10px 10px 10px;
+      border-bottom: 1px solid var(--border);
+      box-sizing: border-box; /* 必須 */
+    }
 
-#tabContainer { 
-  display: flex; 
-  overflow-x: auto; 
-  gap: 8px; 
-  /* ここも width を calc で制御 */
-  margin: 0 -10px; 
-  width: calc(100% + 20px);
-  padding: 12px 10px; 
-  flex-shrink: 0; 
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  box-sizing: border-box; /* 必須 */
-}
+    #tabContainer { 
+      display: flex; 
+      overflow-x: auto; 
+      gap: 8px; 
+      /* ここも width を calc で制御 */
+      margin: 0 -10px; 
+      width: calc(100% + 20px);
+      padding: 12px 10px; 
+      flex-shrink: 0; 
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      box-sizing: border-box; /* 必須 */
+    }
     /* Chrome/Safari用スクロールバー非表示（タブ周りをスッキリさせるため） */
     #tabContainer::-webkit-scrollbar { display: none; }
 
@@ -257,7 +240,6 @@
   <div class="content-area">
     <div id="page-music" class="page active">
       
-      <!-- 固定エリア化 -->
       <div class="sticky-controls">
         <div id="tabContainer">読み込み中...</div>
         <div class="search-row">
